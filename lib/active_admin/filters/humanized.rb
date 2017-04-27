@@ -4,7 +4,7 @@ module ActiveAdmin
     class Humanized
       include ActiveAdmin::ViewHelpers
 
-      def initialize(param, resource_class)
+      def initialize(param, resource_class = nil)
         @body = param[0]
         @value = param[1]
         @resource_class = resource_class
@@ -37,15 +37,18 @@ module ActiveAdmin
 
         filter_name = @body.split(split_string).first
 
+        body = filter_name
+          .gsub('_', ' ')
+          .strip
+          .titleize
+          .gsub('Id', 'ID')
+
+        return body unless @resource_class
+
         begin
           return I18n.t!("activerecord.attributes.#{@resource_class.to_s.underscore}.#{filter_name}")
         rescue I18n::MissingTranslationData => e
-          return @body.split(split_string)
-            .first
-            .gsub('_', ' ')
-            .strip
-            .titleize
-            .gsub('Id', 'ID')
+          return body
         end
       end
 
