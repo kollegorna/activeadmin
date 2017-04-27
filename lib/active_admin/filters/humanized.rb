@@ -4,9 +4,10 @@ module ActiveAdmin
     class Humanized
       include ActiveAdmin::ViewHelpers
 
-      def initialize(param)
+      def initialize(param, resource_class)
         @body = param[0]
         @value = param[1]
+        @resource_class = resource_class
       end
 
       def value
@@ -34,12 +35,18 @@ module ActiveAdmin
         # 'requires_approval' contains the substring 'eq'
         split_string = "_#{current_predicate}"
 
-        @body.split(split_string)
-          .first
-          .gsub('_', ' ')
-          .strip
-          .titleize
-          .gsub('Id', 'ID')
+        filter_name = @body.split(split_string).first
+
+        begin
+          return I18n.t!("activerecord.attributes.#{@resource_class.to_s.underscore}.#{filter_name}")
+        rescue I18n::MissingTranslationData => e
+          return @body.split(split_string)
+            .first
+            .gsub('_', ' ')
+            .strip
+            .titleize
+            .gsub('Id', 'ID')
+        end
       end
 
       def current_predicate
